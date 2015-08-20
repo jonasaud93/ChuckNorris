@@ -1,7 +1,9 @@
 package com.example.jonas.chucknorris;
 
+import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
@@ -10,14 +12,17 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import network.JokeService;
+import persistence.JokesDb;
 import wrapper.Joke;
 import wrapper.JokeAdapter;
 
@@ -30,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
     private List<Joke> jokes = new ArrayList<>();
     private JokeAdapter jokeAdapter;
     private ListView lstJokes;
+    private JokesDb db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +65,34 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        db = new JokesDb(this);
+
+        lstJokes.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, final View view, int position, long id) {
+                final Object selectItem = lstJokes.getSelectedItem();
+                DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        switch (which){
+                            case DialogInterface.BUTTON_POSITIVE:
+                                //Yes button clicked
+
+                                db.insertJoke(selectItem.toString());
+                                break;
+
+                            case DialogInterface.BUTTON_NEGATIVE:
+                                //No button clicked
+                                break;
+                        }
+                    }
+                };
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setMessage("Do you want to save this joke?").setPositiveButton("Yes", dialogClickListener)
+                        .setNegativeButton("No", dialogClickListener).show();
+            }
+        });
     }
 
     @Override
